@@ -1,15 +1,18 @@
-//package <set your package name>;
+//package algorithmsProject;
 
-import integrationproject.algorithms.Algorithms;
-import integrationproject.model.BlackAnt;
-import integrationproject.model.RedAnt;
-import integrationproject.utils.InputHandler;
-import integrationproject.utils.Visualize;
-import java.util.ArrayList;
+        import integrationproject.algorithms.Algorithms;
+        import integrationproject.model.Ant;
+        import integrationproject.model.BlackAnt;
+        import integrationproject.model.Edge;
+        import integrationproject.model.RedAnt;
+        import integrationproject.utils.InputHandler;
+        import integrationproject.utils.Visualize;
+        import java.util.ArrayList;
+        import java.util.Collections;
 
 
 /**
- * Git test v3
+ *
  * @author Christos Boutsikas
  * @aem 2473
  * @email mschristo@csd.auth.gr
@@ -70,6 +73,16 @@ public class IP_2473 extends Algorithms {
     @Override
     public int[][] findMST(ArrayList<RedAnt> redAnts, ArrayList<BlackAnt> blackAnts) {
         //You should implement this method.
+        ArrayList<Ant> allAnts = new ArrayList<Ant>(redAnts);
+        allAnts.addAll(blackAnts);
+        ArrayList<Edge> edges = new ArrayList<>();
+        for (int i=0; i<allAnts.size(); i++){
+            for (int j=i+1; j<allAnts.size(); j++){
+                double distance = allAnts.get(i).getDistanceFrom(allAnts.get(j));
+                edges.add(new Edge(allAnts.get(i).getID(),allAnts.get(j).getID(),distance));
+            }
+        }
+        Collections.sort(edges,new Edge());
         return null;
     }
 
