@@ -1,4 +1,3 @@
-import AdditionalAlgorithms.KruskalFunctions;
 import integrationproject.algorithms.Algorithms;
 import integrationproject.model.BlackAnt;
 import integrationproject.model.Edge;
@@ -34,10 +33,9 @@ public class IP_2473 extends Algorithms {
 
         //debugging options
         boolean visualizeMST = true;
-        boolean visualizeSM = false;
-        boolean printCC = false;
+        boolean visualizeSM = true;
+        boolean printCC = true;
         boolean evaluateResults = true;
-
         if(visualizeMST){
             int[][] mst = algs.findMST(redAnts, blackAnts);
             if (mst != null) {
@@ -268,22 +266,111 @@ public class IP_2473 extends Algorithms {
                 default:
                     break;
             }
-
-
         }
         return MST;
     }
 
     @Override
     public int[][] findStableMarriage(ArrayList<RedAnt> redAnts, ArrayList<BlackAnt> blackAnts) {
-        //You should implement this method.
-        return null;
+        int population = redAnts.size();
+        int[][] stableMarriage = new int[population][2];
+        ArrayList<ArrayList<Edge>> redAntsPreference = new ArrayList<>();
+        ArrayList<ArrayList<Edge>> tmpBLackPref = new ArrayList<>();
+        int[][] blackAntsPreference = new int[population][population];
+        ArrayList<Integer> freeRedAnts = new ArrayList<>();
+        int[] counter = new int[population];
+        int[] redMateOfBlack = new int[population]; // The red mate of each black ant
+        int[] blackMateOfRed = new int[population]; // The black mate of each red ant
+
+        // Fill the array with the free red ants, their preferences , black ants preferences and the array
+        // which shows foreach red and black ant, their mate
+        for (int i = 0; i < population; i++) {
+            freeRedAnts.add(new Integer(i));
+            redAntsPreference.add(new ArrayList<Edge>());
+            tmpBLackPref.add(new ArrayList<Edge>());
+            redMateOfBlack[i] = -1;
+            blackMateOfRed[i] = -1;
+            counter[i] = 0;
+            for (int j = 0; j < population; j++) {
+                double distance1 = redAnts.get(i).getDistanceFrom(blackAnts.get(j));
+                double distance2 = blackAnts.get(i).getDistanceFrom(redAnts.get(j));
+                redAntsPreference.get(i).add(new Edge(redAnts.get(i).getID(), blackAnts.get(j).getID(), distance1)); // From red , To black
+                tmpBLackPref.get(i).add(new Edge(blackAnts.get(i).getID(), redAnts.get(j).getID(), distance2)); // From black , To red
+            }
+            Collections.sort(redAntsPreference.get(i), new Edge());
+            Collections.sort(tmpBLackPref.get(i), new Edge());
+
+            // For black ants preferences we use reverse array which contain for each red ant which
+            // place it take to the black ant pref
+            for (int k = 0; k < tmpBLackPref.get(i).size(); k++) {
+                blackAntsPreference[i][tmpBLackPref.get(i).get(k).getTo()] = k;
+            }
+
+        }
+
+        while (!freeRedAnts.isEmpty()) {
+            int tmpRed = freeRedAnts.get(0);
+            if (blackMateOfRed[tmpRed] == -1 && counter[tmpRed] < population) {
+                int tmpBlack = redAntsPreference.get(tmpRed).get(counter[tmpRed]).getTo();
+                if (redMateOfBlack[tmpBlack] == -1) {
+                    // Both are free so match them
+                    redMateOfBlack[tmpBlack] = tmpRed;
+                    blackMateOfRed[tmpRed] = tmpBlack;
+                    counter[tmpRed]++;
+                    freeRedAnts.remove(0);
+                } else {
+                    // If black has a mate , compare it with the new red ant
+                    int currentMate = redMateOfBlack[tmpBlack];
+                    if (blackAntsPreference[tmpBlack][tmpRed] < blackAntsPreference[tmpBlack][currentMate]) {
+                        // If the new ant is better match them , and the previous red mate add it to free ants and blackmateofred = -1
+                        freeRedAnts.add(new Integer(currentMate));
+                        blackMateOfRed[currentMate] = -1;
+                        redMateOfBlack[tmpBlack] = tmpRed;
+                        blackMateOfRed[tmpRed] = tmpBlack;
+                        counter[tmpRed]++;
+                        freeRedAnts.remove(0);
+                    } else {
+                        // If black ant reject the new red , counter++
+                        counter[tmpRed]++;
+                    }
+                }
+            }
+        }
+
+        // Fill the final solution array
+        for (int i = 0; i < population; i++) {
+            stableMarriage[i][0] = i;
+            stableMarriage[i][1] = blackMateOfRed[i];
+        }
+
+        return stableMarriage;
     }
 
     @Override
     public int[] coinChange(RedAnt redAnt, BlackAnt blackAnt) {
-        //You should implement this method.
-        return null;
+        CoinChangeFunctions coinChangeF = new CoinChangeFunctions();
+        int[] seeds = blackAnt.getObjects();
+        int capacity = redAnt.getCapacity();
+        int[] seedsUsed = new int[capacity + 1];
+        int[] lastSeed = new int[capacity + 1];
+        int[] finalSol = new int[5];
+        for (int i = 0; i > 5; i++) {
+            finalSol[i] = 0;
+        }
+        // Run the main algorithm to solve the problem
+        coinChangeF.coinChangeCalc(seeds, seeds.length, capacity, seedsUsed, lastSeed);
+
+        // Fill the final solution array
+        int j = capacity;
+        while (j > 0) {
+            if (lastSeed[j] == seeds[0]) finalSol[0]++;
+            else if (lastSeed[j] == seeds[1]) finalSol[1]++;
+            else if (lastSeed[j] == seeds[2]) finalSol[2]++;
+            else if (lastSeed[j] == seeds[3]) finalSol[3]++;
+            else if (lastSeed[j] == seeds[4]) finalSol[4]++;
+            j -= lastSeed[j];
+        }
+        return finalSol;
     }
 
     private static void checkParameters(String[] args) {
