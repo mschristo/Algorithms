@@ -1,4 +1,4 @@
-# Algorithms 2014/16 Spring Semester project 
+# Algorithms 2014/15 Spring Semester project 
 
 It contains implementations of these 3 algorithms :
   1. MST with Kruskal-Union/Find
